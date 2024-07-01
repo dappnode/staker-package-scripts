@@ -1,5 +1,3 @@
-Fix any grammar issue and improve this readme
-
 # Staker package scripts
 
 This repo contains some utility functions in shell script to help with the correct usage and configuration of any execution or conesnsus dappnode staker package
