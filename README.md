@@ -8,7 +8,7 @@ This repo contains some utility functions in shell script to help with the corre
 - `set_execution_dnp`: Sets the execution DNP for the current network.
 - `set_engine_url`: Sets the Engine URL for the current network.
 - `set_checkpointsync_url`: Sets the CheckpointSync URL for the current network.
-- `set_mevboost_env`: Sets the MEVBoost environment for the current network.
+- `set_mevboost_flag`: Sets the MEVBoost environment for the current network.
 - `set_mevboost_url`: Sets the MEVBoost URL for the current network.
 - `format_graffiti`: Formats the graffiti string to follow the correct format.
 
