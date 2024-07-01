@@ -2,6 +2,10 @@
 
 UPPERCASE_NETWORK=$(echo "${NETWORK}" | tr '[:lower:]' '[:upper:]')
 
+# Verify if the current NETWORK is supported
+#
+# Arguments:
+#   $1: A space-separated list of supported networks
 verify_network_support() {
     supported_networks=$1 # List of supported networks
 
@@ -21,6 +25,10 @@ verify_network_support() {
     exit 1
 }
 
+# Set network-specific configuration
+#
+# Arguments:
+#   $1: Network-specific flags (can be unset)
 set_network_specific_config() {
     # In case specific flags need to be set for a network
     network_specific_flags=$1
@@ -34,12 +42,14 @@ set_network_specific_config() {
     fi
 }
 
+# Set the DNP name of the execution client selected in the Stakers tab to the EXECUTION_DNP environment variable
 set_execution_dnp() {
     execution_dnp_var="_DAPPNODE_GLOBAL_EXECUTION_CLIENT_${UPPERCASE_NETWORK}"
     eval "EXECUTION_DNP=\${$execution_dnp_var}"
     export EXECUTION_DNP
 }
 
+# Set the engine URL based on the execution client selected in the Stakers tab
 set_engine_url() {
     set_execution_dnp
 
@@ -57,6 +67,13 @@ set_engine_url() {
     export HTTP_ENGINE="http://${execution_subdomain}.dappnode:8551"
 }
 
+# Set the checkpoint sync URL to the EXTRA_OPTS environment variable
+# The beacon node will use this URL to sync the checkpoints
+#
+# Arguments:
+#   $1: Checkpoint flag
+#   $2: Checkpoint URL
+#
 # shellcheck disable=SC2120 # This script is sourced
 set_checkpointsync_url() {
     checkpoint_flag="$1"
@@ -70,6 +87,13 @@ set_checkpointsync_url() {
     fi
 }
 
+# Set the MEV Boost flag and URL to the EXTRA_OPTS environment variable
+# The beacon node will use this flag and URL to enable MEV Boost
+#
+# Arguments:
+#   $1: MEV Boost flag
+#   $2: Skip MEV Boost URL flag
+#
 # shellcheck disable=SC2120 # This script is sourced
 set_mevboost_flag() {
     mevboost_flag="$1"
@@ -98,6 +122,7 @@ set_mevboost_flag() {
     fi
 }
 
+# Set the MEV Boost URL based on the network
 set_mevboost_url() {
     # If network is mainnet and MEV-Boost is enabled, set the MEV-Boost URL
     if [ "${NETWORK}" = "mainnet" ]; then
@@ -109,10 +134,16 @@ set_mevboost_url() {
     echo "[INFO - entrypoint] MEV Boost URL is set to $MEVBOOST_URL"
 }
 
+# Verify if the MEV Boost URL is reachable
+# In case curl is not installed, MEV Boost is assumed to be available
 is_mevboost_available() {
     if [ -z "${MEVBOOST_URL:-}" ]; then
-        echo "[ERROR - entrypoint] MEV Boost URL is not set"
-        return 1
+        set_mevboost_url
+    fi
+
+    if ! command -v curl >/dev/null; then
+        echo "[WARN - entrypoint] curl is not installed. Skipping MEV Boost availability check"
+        return 0
     fi
 
     if curl --retry 5 --retry-delay 5 --retry-all-errors "${MEVBOOST_URL}"; then
@@ -128,6 +159,7 @@ is_mevboost_available() {
     fi
 }
 
+# Set graffiti to the first 32 characters if it is set
 format_graffiti() {
     # Save current locale settings
     oLang="$LANG" oLcAll="$LC_ALL"
