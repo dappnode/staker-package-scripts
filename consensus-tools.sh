@@ -2,12 +2,36 @@
 
 UPPERCASE_NETWORK=$(echo "${NETWORK}" | tr '[:lower:]' '[:upper:]')
 
+verify_network_support() {
+    supported_networks=$1 # List of supported networks
+
+    if [ -z "$NETWORK" ]; then
+        echo "[ERROR - entrypoint] NETWORK is not set"
+        exit 1
+    fi
+
+    for supported_network in $supported_networks; do
+        if [ "$supported_network" = "$NETWORK" ]; then
+            echo "[INFO - entrypoint] NETWORK is set to $NETWORK"
+            return 0
+        fi
+    done
+
+    echo "[ERROR - entrypoint] NETWORK $NETWORK is not supported"
+    exit 1
+}
+
 set_network_specific_config() {
-    export P2P_PORT="$1"
+    # In case specific flags need to be set for a network
+    network_specific_flags=$1
 
     echo "[INFO - entrypoint] Initializing $NETWORK specific config for client"
 
     set_engine_url
+
+    if [ -n "$network_specific_flags" ]; then
+        export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
+    fi
 }
 
 set_execution_dnp() {
@@ -36,17 +60,18 @@ set_engine_url() {
 # shellcheck disable=SC2120 # This script is sourced
 set_checkpointsync_url() {
     checkpoint_flag="$1"
+    checkpoint_url="$2"
 
-    if [ -n "$CHECKPOINT_SYNC_URL" ]; then
-        echo "[INFO - entrypoint] Checkpoint sync URL is set to $CHECKPOINT_SYNC_URL"
-        export EXTRA_OPTS="${checkpoint_flag}=${CHECKPOINT_SYNC_URL} ${EXTRA_OPTS:-}"
+    if [ -n "$checkpoint_url" ]; then
+        echo "[INFO - entrypoint] Checkpoint sync URL is set to $checkpoint_url"
+        export EXTRA_OPTS="${checkpoint_flag}=${checkpoint_url} ${EXTRA_OPTS:-}"
     else
         echo "[WARN - entrypoint] Checkpoint sync URL is not set"
     fi
 }
 
 # shellcheck disable=SC2120 # This script is sourced
-set_mevboost() {
+set_mevboost_flag() {
     mevboost_flag="$1"
     skip_mevboost_url="$2"
 
