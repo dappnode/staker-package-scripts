@@ -1,5 +1,7 @@
 #!/bin/sh
 
+MEVBOOST_SUPPORTED_NETWORKS="mainnet holesky"
+
 # Set network-specific configuration
 #
 # Arguments:
@@ -42,15 +44,13 @@ set_checkpointsync_url() {
 # The beacon node will use this flag and URL to enable MEV Boost
 #
 # Arguments:
-#   $1: Networks for which this package supports MEV Boost
-#   $2: MEV Boost flag
-#   $3: Skip MEV Boost URL flag
+#   $1: MEV Boost flag
+#   $2: Skip MEV Boost URL flag
 #
 # shellcheck disable=SC2120 # This script is sourced
 set_mevboost_flag() {
-    mev_supported_networks=$1
-    mevboost_flag="$2"
-    skip_mevboost_url="$3"
+    mevboost_flag="$1"
+    skip_mevboost_url="$2"
 
     uppercase_network=$(_to_upper_case "$NETWORK")
     mevboost_enabled_var="_DAPPNODE_GLOBAL_MEVBOOST_${uppercase_network}"
@@ -62,7 +62,7 @@ set_mevboost_flag() {
     if [ "${mevboost_enabled}" = "true" ]; then
 
         echo "[INFO - entrypoint] MEV Boost is enabled"
-        _set_mevboost_url "$mev_supported_networks"
+        _set_mevboost_url
 
         if _is_mevboost_available; then
 
@@ -151,13 +151,8 @@ _set_execution_dnp() {
 }
 
 # Set the MEV Boost URL based on the network
-#
-# Arguments:
-#   $1: Supported networks
 _set_mevboost_url() {
-    supported_networks=$1
-
-    _verify_network_support "$supported_networks"
+    _verify_network_support "$MEVBOOST_SUPPORTED_NETWORKS"
 
     # If network is mainnet and MEV-Boost is enabled, set the MEV-Boost URL
     if [ "${NETWORK}" = "mainnet" ]; then
