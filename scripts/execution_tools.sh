@@ -3,15 +3,17 @@
 # Set network-specific configuration
 #
 # Arguments:
-#   $1: Supported networks
-#   $2: Network-specific flags (can be unset)
+#   $1: Network
+#   $2: Supported networks
+#   $3: Network-specific flags (optional)
 set_execution_config_by_network() {
-    supported_networks=$1
-    network_specific_flags=$2 # In case specific flags need to be set for a network
+    network=$1
+    supported_networks=$2
+    network_specific_flags=$3 # Optional flags specific to the network
 
-    echo "[INFO - entrypoint] Initializing $NETWORK specific config for client"
+    echo "[INFO - entrypoint] Initializing $network specific config for client"
 
-    _set_jwt_path "$supported_networks"
+    _set_jwt_path "$network" "$supported_networks"
 
     if [ -n "$network_specific_flags" ]; then
         export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
@@ -37,23 +39,21 @@ post_jwt_to_dappmanager() {
 
 # INTERNAL FUNCTIONS (Not meant to be called directly)
 
-_to_upper_case() {
-    echo "$1" | tr '[:lower:]' '[:upper:]'
-}
-
 # Set the JWT path based on the consensus client selected in the Stakers tab
 #
 # Arguments:
-#   $1: Supported networks
+#   $1: Network
+#   $2: Supported networks
 _set_jwt_path() {
-    supported_networks=$1
+    network=$1
+    supported_networks=$2
 
-    _set_consensus_dnp "$supported_networks"
+    _set_consensus_dnp "$network" "$supported_networks"
 
-    short_consensus_name=$(_shorten_consensus_name "$CONSENSUS_DNP")
+    consensus_client=$(_get_client_from_dnp "$CONSENSUS_DNP")
 
-    echo "[INFO - entrypoint] Using $short_consensus_name JWT"
-    export JWT_PATH="/security/$short_consensus_name/jwtsecret.hex"
+    echo "[INFO - entrypoint] Using $consensus_client JWT"
+    export JWT_PATH="/security/$consensus_client/jwtsecret.hex"
 
     if [ ! -f "${JWT_PATH}" ]; then
         echo "[ERROR - entrypoint] JWT not found at ${JWT_PATH}"
@@ -64,13 +64,15 @@ _set_jwt_path() {
 # Set the DNP name of the consensus client selected in the Stakers tab to the CONSENSUS_DNP environment variable
 #
 # Arguments:
-#   $1: Supported networks
+#   $1: Network
+#   $2: Supported networks
 _set_consensus_dnp() {
-    supported_networks=$1
+    network=$1
+    supported_networks=$2
 
-    _verify_network_support "$supported_networks"
+    _verify_network_support "$network" "$supported_networks"
 
-    uppercase_network=$(_to_upper_case "$NETWORK")
+    uppercase_network=$(_to_upper_case "$network")
     consensus_dnp_var="_DAPPNODE_GLOBAL_CONSENSUS_CLIENT_${uppercase_network}"
     eval "CONSENSUS_DNP=\${$consensus_dnp_var}"
     export CONSENSUS_DNP
@@ -81,7 +83,7 @@ _set_consensus_dnp() {
 #
 # Arguments:
 #   $1: Consensus DNP name
-_shorten_consensus_name() {
+_get_client_from_dnp() {
     consensus_dnp=$1
 
     echo "$consensus_dnp" | cut -d'.' -f1 | cut -d'-' -f1

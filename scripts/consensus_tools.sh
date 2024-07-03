@@ -5,19 +5,44 @@ MEVBOOST_SUPPORTED_NETWORKS="mainnet holesky"
 # Set network-specific configuration
 #
 # Arguments:
-#   $1: Supported networks
-#   $2: Network-specific flags (can be unset)
-set_consensus_config_by_network() {
-    supported_networks=$1
-    network_specific_flags=$2 # In case specific flags need to be set for a network
+#   $1: Network --> e.g. "mainnet"
+#   $2: Supported networks --> e.g. "mainnet testnet"
+#   $3: Network-specific flags (can be unset) --> e.g. "--foo --bar"
+set_beacon_config_by_network() {
+    network=$1
+    supported_networks=$2
+    network_specific_flags=$3 # In case specific flags need to be set for a network
 
-    echo "[INFO - entrypoint] Initializing $NETWORK specific config for client"
+    echo "[INFO - entrypoint] Initializing $network specific config for beacon node"
 
-    _set_engine_url "$supported_networks"
+    _set_engine_api_url "$network" "$supported_networks"
 
     if [ -n "$network_specific_flags" ]; then
         export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
     fi
+}
+
+# Set network-specific configuration for validator
+#
+# Arguments:
+#   $1: Network --> e.g. "mainnet"
+#   $2: Supported networks --> e.g. "mainnet testnet"
+#   $3: Client --> e.g. "nimbus"
+#   $4: Network-specific flags (optional) --> e.g. "--foo --bar"
+set_validator_config_by_network() {
+    network=$1
+    supported_networks=$2
+    client=$3
+    network_specific_flags=$4
+
+    echo "[INFO - entrypoint] Initializing $network specific config for validator"
+
+    _set_validator_api_urls "$network" "$supported_networks" "$client"
+
+    if [ -n "$network_specific_flags" ]; then
+        export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
+    fi
+
 }
 
 # Set the checkpoint sync URL to the EXTRA_OPTS environment variable
@@ -28,7 +53,7 @@ set_consensus_config_by_network() {
 #   $2: Checkpoint URL
 #
 # shellcheck disable=SC2120 # This script is sourced
-set_checkpointsync_url() {
+set_checkpoint_sync_url() {
     checkpoint_flag="$1"
     checkpoint_url="$2"
 
@@ -44,15 +69,17 @@ set_checkpointsync_url() {
 # The beacon node will use this flag and URL to enable MEV Boost
 #
 # Arguments:
-#   $1: MEV Boost flag
-#   $2: Skip MEV Boost URL flag
+#   $1: Network --> e.g. "mainnet"
+#   $2: MEV Boost flag --> e.g. "--builder"
+#   $3: Skip MEV Boost URL flag --> e.g. "true" to skip setting the URL
 #
 # shellcheck disable=SC2120 # This script is sourced
 set_mevboost_flag() {
-    mevboost_flag="$1"
-    skip_mevboost_url="$2"
+    network=$1
+    mevboost_flag=$2
+    skip_mevboost_url=$3
 
-    uppercase_network=$(_to_upper_case "$NETWORK")
+    uppercase_network=$(_to_upper_case "$network")
     mevboost_enabled_var="_DAPPNODE_GLOBAL_MEVBOOST_${uppercase_network}"
 
     # Using eval to check and assign the variable, ensuring it's not unbound
@@ -62,7 +89,7 @@ set_mevboost_flag() {
     if [ "${mevboost_enabled}" = "true" ]; then
 
         echo "[INFO - entrypoint] MEV Boost is enabled"
-        _set_mevboost_url
+        _set_mevboost_url "$network"
 
         if _is_mevboost_available; then
 
@@ -102,18 +129,16 @@ format_graffiti() {
 
 # INTERNAL FUNCTIONS (Not meant to be called directly)
 
-_to_upper_case() {
-    echo "$1" | tr '[:lower:]' '[:upper:]'
-}
-
 # Set the engine URL based on the execution client selected in the Stakers tab
 #
 # Arguments:
-#   $1: Supported networks
-_set_engine_url() {
-    supported_networks=$1
+#   $1: Network
+#   $2: Supported networks
+_set_engine_api_url() {
+    network=$1
+    supported_networks=$2
 
-    _set_execution_dnp "$supported_networks"
+    _set_execution_dnp "$network" "$supported_networks"
 
     case "$EXECUTION_DNP" in
     *".public."*)
@@ -126,24 +151,67 @@ _set_engine_url() {
         ;;
     esac
 
-    export HTTP_ENGINE="http://${execution_subdomain}.dappnode:8551"
+    export ENGINE_API_URL="http://${execution_subdomain}.dappnode:8551"
+}
+
+# Set the validator API URLs based on the network and client
+#
+# Arguments:
+#   $1: Network
+#   $2: Supported networks
+#   $3: Client
+_set_validator_api_urls() {
+    network=$1
+    supported_networks=$2
+    client=$3
+
+    _verify_network_support "$supported_networks"
+
+    if [ -z "$client" ]; then
+        echo "[ERROR - entrypoint] Client is not set"
+        exit 1
+    fi
+
+    if [ "$client" = "nimbus" ]; then
+        beacon_service="beacon-validator"
+        beacon_port="4500"
+    else
+        beacon_service="beacon-chain"
+        beacon_port="3500"
+    fi
+
+    if [ "${network}" = "mainnet" ]; then
+        export WEB3SIGNER_API_URL="http://web3signer.web3signer.dappnode:9000"
+        export BEACON_API_URL="http://${beacon_service}.${client}.dappnode:${beacon_port}"
+
+    else
+        export WEB3SIGNER_API_URL="http://web3signer.web3signer-${network}.dappnode:9000"
+        export BEACON_API_URL="http://${beacon_service}.${client}-${network}.dappnode:${beacon_port}"
+
+    fi
+
+    echo "[INFO - entrypoint] Web3signer URL is set to $WEB3SIGNER_API_URL"
+    echo "[INFO - entrypoint] Beacon API URL is set to $BEACON_API_URL"
+
 }
 
 # Set the DNP name of the execution client selected in the Stakers tab to the EXECUTION_DNP environment variable
 #
 # Arguments:
-#   $1: Supported networks
+#   $1: Network
+#   $2: Supported networks
 _set_execution_dnp() {
-    supported_networks=$1
+    network=$1
+    supported_networks=$2
 
     _verify_network_support "$supported_networks"
 
-    uppercase_network=$(_to_upper_case "$NETWORK")
+    uppercase_network=$(_to_upper_case "$network")
     execution_dnp_var="_DAPPNODE_GLOBAL_EXECUTION_CLIENT_${uppercase_network}"
     eval "EXECUTION_DNP=\${$execution_dnp_var}"
 
     if [ -z "$EXECUTION_DNP" ]; then
-        echo "[ERROR - entrypoint] Execution client is not set for $NETWORK"
+        echo "[ERROR - entrypoint] Execution client is not set for $network"
         exit 1
     fi
 
@@ -151,14 +219,18 @@ _set_execution_dnp() {
 }
 
 # Set the MEV Boost URL based on the network
+#
+# Arguments:
+#   $1: Network
 _set_mevboost_url() {
-    _verify_network_support "$MEVBOOST_SUPPORTED_NETWORKS"
+    network=$1
+    verify_network_support "$network" "$MEVBOOST_SUPPORTED_NETWORKS"
 
     # If network is mainnet and MEV-Boost is enabled, set the MEV-Boost URL
-    if [ "${NETWORK}" = "mainnet" ]; then
+    if [ "${network}" = "mainnet" ]; then
         export MEVBOOST_URL="http://mev-boost.dappnode:18550"
     else
-        export MEVBOOST_URL="http://mev-boost-${NETWORK}.dappnode:18550"
+        export MEVBOOST_URL="http://mev-boost-${network}.dappnode:18550"
     fi
 
     echo "[INFO - entrypoint] MEV Boost URL is set to $MEVBOOST_URL"
