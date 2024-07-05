@@ -211,7 +211,7 @@ _set_execution_dnp() {
     network=$1
     supported_networks=$2
 
-    _verify_network_support "$supported_networks"
+    _verify_network_support "$network" "$supported_networks"
 
     uppercase_network=$(_to_upper_case "$network")
     execution_dnp_var="_DAPPNODE_GLOBAL_EXECUTION_CLIENT_${uppercase_network}"
