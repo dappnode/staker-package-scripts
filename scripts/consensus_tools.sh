@@ -172,7 +172,7 @@ _set_validator_api_urls() {
     supported_networks=$2
     client=$3
 
-    _verify_network_support "$supported_networks"
+    _verify_network_support "$network" "$supported_networks"
 
     if [ -z "$client" ]; then
         echo "[ERROR - entrypoint] Client is not set"
