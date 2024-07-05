@@ -17,9 +17,7 @@ set_beacon_config_by_network() {
 
     _set_engine_api_url "$network" "$supported_networks"
 
-    if [ -n "$network_specific_flags" ]; then
-        export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
-    fi
+    add_flag_to_extra_opts "$network_specific_flags"
 }
 
 # Set network-specific configuration for validator
@@ -39,10 +37,7 @@ set_validator_config_by_network() {
 
     _set_validator_api_urls "$network" "$supported_networks" "$client"
 
-    if [ -n "$network_specific_flags" ]; then
-        export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
-    fi
-
+    add_flag_to_extra_opts "$network_specific_flags"
 }
 
 # Set the checkpoint sync URL to the EXTRA_OPTS environment variable
@@ -59,7 +54,7 @@ set_checkpoint_sync_url() {
 
     if [ -n "$checkpoint_url" ]; then
         echo "[INFO - entrypoint] Checkpoint sync URL is set to $checkpoint_url"
-        export EXTRA_OPTS="${checkpoint_flag}=${checkpoint_url} ${EXTRA_OPTS:-}"
+        add_flag_to_extra_opts "${checkpoint_flag}=${checkpoint_url}"
     else
         echo "[WARN - entrypoint] Checkpoint sync URL is not set"
     fi
@@ -94,9 +89,9 @@ set_mevboost_flag() {
         if _is_mevboost_available; then
 
             if [ "${skip_mevboost_url}" = "true" ]; then
-                export EXTRA_OPTS="${mevboost_flag} ${EXTRA_OPTS:-}"
+                add_flag_to_extra_opts "${mevboost_flag}"
             else
-                export EXTRA_OPTS="${mevboost_flag}=${MEVBOOST_URL} ${EXTRA_OPTS:-}"
+                add_flag_to_extra_opts "${mevboost_flag}=${MEVBOOST_URL}"
             fi
         fi
     else
@@ -125,6 +120,18 @@ format_graffiti() {
 
     # Restore locale settings
     LANG="$oLang" LC_ALL="$oLcAll"
+}
+
+validate_fee_recipient() {
+
+    if echo "$FEE_RECIPIENT" | grep -Eq '^0x[a-fA-F0-9]{40}$'; then
+        echo "[INFO - entrypoint] Fee recipient address (${FEE_RECIPIENT}) is valid"
+    else
+        echo "[WARN - entrypoint] Fee recipient address is invalid. It should be an Ethereum address"
+        echo "[WARN - entrypoint] Setting the fee recipient address to the burn address"
+        export FEE_RECIPIENT="0x0000000000000000000000000000000000000000"
+    fi
+
 }
 
 # INTERNAL FUNCTIONS (Not meant to be called directly)

@@ -1,5 +1,24 @@
 #!/bin/sh
 
+# Internal function to add a flag to EXTRA_OPTS if it's not already included
+#
+# Arguments:
+#   $1: Flag to add
+add_flag_to_extra_opts() {
+    flag=$1
+
+    if [ -z "$flag" ]; then
+        return
+    fi
+
+    if [ -z "${EXTRA_OPTS##*"$flag"*}" ]; then
+        echo "[INFO - internal] Flag '$flag' is already in EXTRA_OPTS"
+    else
+        echo "[INFO - internal] Adding flag '$flag' to EXTRA_OPTS"
+        export EXTRA_OPTS="${flag} ${EXTRA_OPTS:-} "
+    fi
+}
+
 # Verify if the current network is supported
 #
 # Arguments:

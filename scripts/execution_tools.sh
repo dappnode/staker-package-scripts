@@ -15,9 +15,8 @@ set_execution_config_by_network() {
 
     _set_jwt_path "$network" "$supported_networks"
 
-    if [ -n "$network_specific_flags" ]; then
-        export EXTRA_OPTS="${network_specific_flags} ${EXTRA_OPTS:-}"
-    fi
+    add_flag_to_extra_opts "$network_specific_flags"
+
 }
 
 # Post JWT to Package info tab in Dappmanager
