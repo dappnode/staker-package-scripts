@@ -31,9 +31,6 @@ jobs:
               fi
             done
 
-            # Exclude common_tools.sh from release artifacts
-            rm scripts/common_tools.sh
-
       - name: Create GitHub Release
         uses: ncipollo/release-action@v1
         with:

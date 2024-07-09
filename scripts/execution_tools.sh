@@ -71,9 +71,8 @@ _set_consensus_dnp() {
 
     _verify_network_support "$network" "$supported_networks"
 
-    uppercase_network=$(_to_upper_case "$network")
-    consensus_dnp_var="_DAPPNODE_GLOBAL_CONSENSUS_CLIENT_${uppercase_network}"
-    eval "CONSENSUS_DNP=\${$consensus_dnp_var}"
+    CONSENSUS_DNP=$(get_value_from_global_env "CONSENSUS_CLIENT" "$network")
+
     export CONSENSUS_DNP
 }
 

@@ -74,11 +74,7 @@ set_mevboost_flag() {
     mevboost_flag=$2
     skip_mevboost_url=$3
 
-    uppercase_network=$(_to_upper_case "$network")
-    mevboost_enabled_var="_DAPPNODE_GLOBAL_MEVBOOST_${uppercase_network}"
-
-    # Using eval to check and assign the variable, ensuring it's not unbound
-    eval "mevboost_enabled=\${${mevboost_enabled_var}:-false}"
+    mevboost_enabled=$(get_value_from_global_env "MEVBBOST" "$network")
 
     # shellcheck disable=SC2154
     if [ "${mevboost_enabled}" = "true" ]; then
@@ -147,18 +143,9 @@ _set_engine_api_url() {
 
     _set_execution_dnp "$network" "$supported_networks"
 
-    case "$EXECUTION_DNP" in
-    *".public."*)
-        # nethermind.public.dappnode.eth -> nethermind.public
-        execution_subdomain=$(echo "$EXECUTION_DNP" | cut -d'.' -f1-2)
-        ;;
-    *)
-        # geth.dnp.dappnode.eth -> geth
-        execution_subdomain=$(echo "$EXECUTION_DNP" | cut -d'.' -f1)
-        ;;
-    esac
+    execution_alias=$(_get_client_network_alias "$EXECUTION_DNP")
 
-    export ENGINE_API_URL="http://${execution_subdomain}.dappnode:8551"
+    export ENGINE_API_URL="http://${execution_alias}:8551"
 }
 
 # Set the validator API URLs based on the network and client
@@ -213,9 +200,7 @@ _set_execution_dnp() {
 
     _verify_network_support "$network" "$supported_networks"
 
-    uppercase_network=$(_to_upper_case "$network")
-    execution_dnp_var="_DAPPNODE_GLOBAL_EXECUTION_CLIENT_${uppercase_network}"
-    eval "EXECUTION_DNP=\${$execution_dnp_var}"
+    EXECUTION_DNP=$(_get_value_from_global_env "EXECUTION_CLIENT" "$network")
 
     if [ -z "$EXECUTION_DNP" ]; then
         echo "[ERROR - entrypoint] Execution client is not set for $network"
