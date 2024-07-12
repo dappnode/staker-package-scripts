@@ -200,7 +200,7 @@ _set_execution_dnp() {
 
     _verify_network_support "$network" "$supported_networks"
 
-    EXECUTION_DNP=$(_get_value_from_global_env "EXECUTION_CLIENT" "$network")
+    EXECUTION_DNP=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
 
     if [ -z "$EXECUTION_DNP" ]; then
         echo "[ERROR - entrypoint] Execution client is not set for $network"
