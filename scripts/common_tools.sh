@@ -13,8 +13,11 @@ add_flag_to_extra_opts() {
         return
     fi
 
-    if [ -z "${EXTRA_OPTS##*"$flag"*}" ]; then
-        echo "[INFO - internal] Flag '$flag' is already in EXTRA_OPTS"
+    # Extract the flag key before '=' or space (in case flag includes a value)
+    flag_key=$(echo "$flag" | cut -d'=' -f1 | cut -d' ' -f1)
+
+    if echo "$EXTRA_OPTS" | grep -q -- "$flag_key"; then
+        echo "[INFO - internal] Flag '$flag_key' is already in EXTRA_OPTS"
     else
         echo "[INFO - internal] Adding flag '$flag' to EXTRA_OPTS"
         export EXTRA_OPTS="${flag} ${EXTRA_OPTS:-} "
