@@ -143,7 +143,7 @@ _set_engine_api_url() {
 
     _set_execution_dnp "$network" "$supported_networks"
 
-    execution_alias=$(_get_client_network_alias "$EXECUTION_DNP")
+    execution_alias=$(get_client_network_alias "$EXECUTION_DNP")
 
     export ENGINE_API_URL="http://${execution_alias}:8551"
 }
