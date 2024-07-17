@@ -21,6 +21,8 @@ export_execution_rpc_api_url() {
     fi
 
     export EXECUTION_RPC_API_URL="http://${execution_alias}:8545"
+
+    echo "[INFO - entrypoint] Exported EXECUTION_RPC_API_URL: $EXECUTION_RPC_API_URL"
 }
 
 # Export the BEACON_API_URL based on the network and supported networks
@@ -53,6 +55,8 @@ export_beacon_api_url() {
     fi
 
     export BEACON_API_URL="http://${beacon_service}.${consensus_alias}:${beacon_port}"
+
+    echo "[INFO - entrypoint] Exported BEACON_API_URL: $BEACON_API_URL"
 }
 
 # Export the BRAIN_URL based on the network and supported networks
@@ -73,4 +77,6 @@ export_brain_url() {
     fi
 
     export BRAIN_URL
+
+    echo "[INFO - entrypoint] Exported BRAIN_URL: $BRAIN_URL"
 }
