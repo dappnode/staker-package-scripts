@@ -52,15 +52,7 @@ export_beacon_api_url() {
         beacon_port="3500"
     fi
 
-    if [ "$network" = "mainnet" ]; then
-        BEACON_API_URL="http://${beacon_service}.${client}.dappnode:${beacon_port}"
-
-    else
-        BEACON_API_URL="http://${beacon_service}.${client}-${network}.dappnode:${beacon_port}"
-
-    fi
-
-    export BEACON_API_URL
+    export BEACON_API_URL="http://${beacon_service}.${consensus_alias}:${beacon_port}"
 }
 
 # Export the BRAIN_URL based on the network and supported networks

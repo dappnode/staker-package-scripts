@@ -159,6 +159,8 @@ _set_validator_api_urls() {
     supported_networks=$2
     client=$3
 
+    # TODO: Improve this following export_beacon_api_url of dvt_lsd tools
+
     _verify_network_support "$network" "$supported_networks"
 
     if [ -z "$client" ]; then
