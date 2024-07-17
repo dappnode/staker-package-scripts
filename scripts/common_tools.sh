@@ -39,7 +39,7 @@ get_value_from_global_env() {
         exit 1
     fi
 
-    uppercase_network=$(_to_upper_case "$network")
+    uppercase_network=$(to_upper_case "$network")
     global_env_var="_DAPPNODE_GLOBAL_${env_type}_${uppercase_network}"
     eval "GLOBAL_ENV_VALUE=\${$global_env_var}"
 
@@ -66,6 +66,22 @@ get_client_network_alias() {
     esac
 
     echo "${client_alias}.dappnode"
+}
+
+# Convert a string to uppercase
+#
+# Arguments:
+#   $1: String to convert
+to_upper_case() {
+    echo "$1" | tr '[:lower:]' '[:upper:]'
+}
+
+# Convert a string to lowercase
+#
+# Arguments:
+#   $1: String to convert
+to_lower_case() {
+    echo "$1" | tr '[:upper:]' '[:lower:]'
 }
 
 # Verify if the current network is supported
@@ -101,12 +117,4 @@ _is_value_in_array() {
     done
 
     return 1
-}
-
-# Convert a string to uppercase
-#
-# Arguments:
-#   $1: String to convert
-_to_upper_case() {
-    echo "$1" | tr '[:lower:]' '[:upper:]'
 }
