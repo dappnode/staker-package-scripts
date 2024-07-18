@@ -6,8 +6,9 @@ STAKER_GLOBAL_ENVS="EXECUTION_CLIENT CONSENSUS_CLIENT MEVBOOST"
 #
 # Arguments:
 #   $1: Flag to add
-add_flag_to_extra_opts() {
-    flag=$1
+add_flag_to_extra_opts_safely() {
+    extra_opts=$1
+    flag=$2
 
     if [ -z "$flag" ]; then
         return
@@ -16,12 +17,16 @@ add_flag_to_extra_opts() {
     # Extract the flag key before '=' or space (in case flag includes a value)
     flag_key=$(echo "$flag" | cut -d'=' -f1 | cut -d' ' -f1)
 
-    if echo "$EXTRA_OPTS" | grep -q -- "$flag_key"; then
-        echo "[INFO - internal] Flag '$flag_key' is already in EXTRA_OPTS"
+    if echo "$extra_opts" | grep -q -- "$flag_key"; then
+        echo "[INFO - entrypoint] Flag '$flag_key' is already in EXTRA OPTS" >&2
     else
-        echo "[INFO - internal] Adding flag '$flag' to EXTRA_OPTS"
-        export EXTRA_OPTS="${flag} ${EXTRA_OPTS:-} "
+        echo "[INFO - entrypoint] Adding flag '$flag' to EXTRA OPTS" >&2
+        extra_opts="${flag} ${extra_opts:-} "
     fi
+
+    echo "[INFO - entrypoint] New EXTRA OPTS: $extra_opts" >&2
+
+    echo "$extra_opts"
 }
 
 # Get the value of a global environment variable
@@ -35,15 +40,16 @@ get_value_from_global_env() {
     network=$2
 
     if ! _is_value_in_array "${env_type}" "${STAKER_GLOBAL_ENVS}"; then
-        echo "[ERROR - entrypoint] ${env_type} is not a valid global environment variable"
+        echo "[ERROR - entrypoint] ${env_type} is not a valid global environment variable" >&2
         exit 1
     fi
 
     uppercase_network=$(to_upper_case "$network")
     global_env_var="_DAPPNODE_GLOBAL_${env_type}_${uppercase_network}"
-    eval "GLOBAL_ENV_VALUE=\${$global_env_var}"
+    eval "global_env_value=\${$global_env_var}"
 
-    echo "${GLOBAL_ENV_VALUE}"
+    # shellcheck disable=SC2154
+    echo "${global_env_value}"
 }
 
 # Get the client alias from the DNP name (in dncore_network)
@@ -94,7 +100,7 @@ _verify_network_support() {
     supported_networks=$2
 
     if [ -z "$network" ]; then
-        echo "[ERROR - entrypoint] NETWORK is not set"
+        echo "[ERROR - entrypoint] NETWORK is not set" >&2
         exit 1
     fi
 
@@ -102,7 +108,7 @@ _verify_network_support() {
         return 0
     fi
 
-    echo "[ERROR - entrypoint] NETWORK $network is not supported"
+    echo "[ERROR - entrypoint] NETWORK $network is not supported" >&2
     exit 1
 }
 

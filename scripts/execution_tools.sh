@@ -1,79 +1,64 @@
 #!/bin/sh
 
-# Set network-specific configuration
-#
-# Arguments:
-#   $1: Network
-#   $2: Supported networks
-#   $3: Network-specific flags (optional)
-set_execution_config_by_network() {
-    network=$1
-    supported_networks=$2
-    network_specific_flags=$3 # Optional flags specific to the network
-
-    echo "[INFO - entrypoint] Initializing $network specific config for client"
-
-    _set_jwt_path "$network" "$supported_networks"
-
-    add_flag_to_extra_opts "$network_specific_flags"
-
-}
-
-# Post JWT to Package info tab in Dappmanager
-# If the JWT is not posted, a warning message is logged, but the script continues
-post_jwt_to_dappmanager() {
-
-    if [ -z "$JWT_PATH" ]; then
-        echo "[WARN - entrypoint] JWT_PATH is not set. Cannot post JWT to Dappmanager"
-        return 1
-    fi
-
-    echo "[INFO - entrypoint] Posting JWT to Dappmanager"
-    jwt=$(cat "${JWT_PATH}")
-
-    curl -X POST "http://my.dappnode/data-send?key=jwt&data=${jwt}" || {
-        echo "[WARN - entrypoint] JWT could not be posted to package info"
-    }
-}
-
-# INTERNAL FUNCTIONS (Not meant to be called directly)
-
 # Set the JWT path based on the consensus client selected in the Stakers tab
 #
 # Arguments:
 #   $1: Network
 #   $2: Supported networks
-_set_jwt_path() {
+get_jwt_path() {
     network=$1
     supported_networks=$2
 
-    _set_consensus_dnp "$network" "$supported_networks"
+    consensus_short_dnp=$(_get_consensus_short_dnp "$network" "$supported_networks")
 
-    consensus_client=$(_get_client_from_dnp "$CONSENSUS_DNP")
+    echo "[INFO - entrypoint] Using $consensus_short_dnp JWT" >&2
 
-    echo "[INFO - entrypoint] Using $consensus_client JWT"
-    export JWT_PATH="/security/$consensus_client/jwtsecret.hex"
+    jwt_path="/security/$consensus_short_dnp/jwtsecret.hex"
 
-    if [ ! -f "${JWT_PATH}" ]; then
-        echo "[ERROR - entrypoint] JWT not found at ${JWT_PATH}"
+    if [ ! -f "${jwt_path}" ]; then
+        echo "[ERROR - entrypoint] JWT not found at ${jwt_path}" >&2
         exit 1
     fi
+
+    echo "${jwt_path}"
 }
+
+# Post JWT to Package info tab in Dappmanager
+# If the JWT is not posted, a warning message is logged, but the script continues
+post_jwt_to_dappmanager() {
+    jwt_path=$1
+
+    echo "[INFO - entrypoint] Posting JWT to Dappmanager" >&2
+    jwt=$(cat "${jwt_path}")
+
+    if [ -z "$jwt" ]; then
+        echo "[ERROR - entrypoint] JWT is empty" >&2
+        return 1
+    fi
+
+    curl -X POST "http://my.dappnode/data-send?key=jwt&data=${jwt}" || {
+        echo "[WARN - entrypoint] JWT could not be posted to package info" >&2
+    }
+}
+
+# INTERNAL FUNCTIONS (Not meant to be called directly)
 
 # Set the DNP name of the consensus client selected in the Stakers tab to the CONSENSUS_DNP environment variable
 #
 # Arguments:
 #   $1: Network
 #   $2: Supported networks
-_set_consensus_dnp() {
+_get_consensus_short_dnp() {
     network=$1
     supported_networks=$2
 
     _verify_network_support "$network" "$supported_networks"
 
-    CONSENSUS_DNP=$(get_value_from_global_env "CONSENSUS_CLIENT" "$network")
+    consensus_dnp=$(get_value_from_global_env "CONSENSUS_CLIENT" "$network")
 
-    export CONSENSUS_DNP
+    consensus_short_dnp=$(_get_client_from_dnp "$consensus_dnp")
+
+    echo "$consensus_short_dnp"
 }
 
 # Returns the short name of the consensus client

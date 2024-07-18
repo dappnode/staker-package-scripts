@@ -1,11 +1,10 @@
 #!/bin/sh
-
-# Export the EXECUTION_RPC_API_URL based on the network and supported networks
+# Returns the execution RPC API URL based on the network and supported networks
 #
 # Arguments:
 #   $1: Network
 #   $2: Supported networks (space-separated list)
-export_execution_rpc_api_url() {
+get_execution_rpc_api_url_from_global_env() {
     network=$1
     supported_networks=$2
 
@@ -16,21 +15,23 @@ export_execution_rpc_api_url() {
     execution_alias=$(get_client_network_alias "$execution_dnp")
 
     if [ -z "$execution_alias" ]; then
-        echo "[ERROR - entrypoint] Execution endpoint could not be determined"
+        echo "[ERROR - entrypoint] Execution endpoint could not be determined" >&2
         exit 1
     fi
 
-    export EXECUTION_RPC_API_URL="http://${execution_alias}:8545"
+    execution_rpc_api_url="http://${execution_alias}:8545"
 
-    echo "[INFO - entrypoint] Exported EXECUTION_RPC_API_URL: $EXECUTION_RPC_API_URL"
+    echo "[INFO - entrypoint] Execution RPC API URL is: $execution_rpc_api_url" >&2
+
+    echo "$execution_rpc_api_url"
 }
 
-# Export the BEACON_API_URL based on the network and supported networks
+# Returns the beacon API URL based on the network and supported networks
 #
 # Arguments:
 #   $1: Network
 #   $2: Supported networks (space-separated list)
-export_beacon_api_url() {
+get_beacon_api_url_from_global_env() {
     network=$1
     supported_networks=$2
 
@@ -41,7 +42,7 @@ export_beacon_api_url() {
     consensus_alias=$(get_client_network_alias "$consensus_dnp")
 
     if [ -z "$consensus_alias" ]; then
-        echo "[ERROR - entrypoint] Beacon endpoint could not be determined"
+        echo "[ERROR - entrypoint] Beacon endpoint could not be determined" >&2
         exit 1
     fi
 
@@ -54,29 +55,29 @@ export_beacon_api_url() {
         beacon_port="3500"
     fi
 
-    export BEACON_API_URL="http://${beacon_service}.${consensus_alias}:${beacon_port}"
+    beacon_api_url="http://${beacon_service}.${consensus_alias}:${beacon_port}"
 
-    echo "[INFO - entrypoint] Exported BEACON_API_URL: $BEACON_API_URL"
+    echo "[INFO - entrypoint] Beacon API URL is: $beacon_api_url" >&2
+
+    echo "$beacon_api_url"
 }
 
-# Export the BRAIN_URL based on the network and supported networks
+# Returns the brain (from the Web3Signer package) URL based on the network and supported networks
 #
 # Arguments:
 #   $1: Network
 #   $2: Supported networks (space-separated list)
-export_brain_url() {
+get_brain_api_url() {
     network=$1
     supported_networks=$2
 
-    _verify_network_support "$network" "$supported_networks"
+    web3signer_alias=$(_get_web3signer_alias "${network}" "${supported_networks}")
 
-    if [ "$network" = "mainnet" ]; then
-        BRAIN_URL="http://brain.web3signer.dappnode:3000"
-    else
-        BRAIN_URL="http://brain.web3signer-${network}.dappnode:3000"
-    fi
+    brain_url="http://brain.${web3signer_alias}:3000"
 
-    export BRAIN_URL
+    echo "[INFO - entrypoint] Web3Signer brain URL is: $brain_url" >&2
 
-    echo "[INFO - entrypoint] Exported BRAIN_URL: $BRAIN_URL"
+    echo "$brain_url"
 }
+
+# common_tools.sh APPENDED HERE BY WORKFLOW
