@@ -17,33 +17,6 @@ get_engine_api_url() {
     echo "http://${execution_alias}:8551"
 }
 
-# Returns the execution RPC API URL based on the network and supported networks
-#
-# Arguments:
-#   $1: Network
-#   $2: Supported networks (space-separated list)
-get_execution_rpc_api_url() {
-    network=$1
-    supported_networks=$2
-
-    _verify_network_support "$network" "$supported_networks"
-
-    execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
-
-    execution_alias=$(get_client_network_alias "$execution_dnp")
-
-    if [ -z "$execution_alias" ]; then
-        echo "[ERROR - entrypoint] Execution endpoint could not be determined" >&2
-        exit 1
-    fi
-
-    execution_rpc_api_url="http://${execution_alias}:8545"
-
-    echo "[INFO - entrypoint] Execution RPC API URL is: $execution_rpc_api_url" >&2
-
-    echo "$execution_rpc_api_url"
-}
-
 # Returns the beacon API URL based on the network and supported networks
 #
 # Arguments:
@@ -52,20 +25,16 @@ get_execution_rpc_api_url() {
 get_beacon_api_url() {
     network=$1
     supported_networks=$2
+    consensus_client=$3 # Example: lodestar
 
     _verify_network_support "$network" "$supported_networks"
 
-    consensus_dnp=$(get_value_from_global_env "CONSENSUS_CLIENT" "$network")
-
-    consensus_alias=$(get_client_network_alias "$consensus_dnp")
-
-    if [ -z "$consensus_alias" ]; then
-        echo "[ERROR - entrypoint] Beacon endpoint could not be determined" >&2
+    if [ -z "$consensus_client" ]; then
+        echo "[ERROR - entrypoint] Client is not set. It must be set to one of: lodestar, nimbus, prysm, teku or lighthouse" >&2
         exit 1
     fi
 
-    # If consensus client is nimbus, the beacon service is beacon-validator
-    if echo "$consensus_dnp" | grep -q "nimbus"; then
+    if [ "$consensus_client" = "nimbus" ]; then
         beacon_service="beacon-validator"
         beacon_port="4500"
     else
@@ -78,24 +47,7 @@ get_beacon_api_url() {
     echo "[INFO - entrypoint] Beacon API URL is: $beacon_api_url" >&2
 
     echo "$beacon_api_url"
-}
 
-# Returns the brain (from the Web3Signer package) URL based on the network and supported networks
-#
-# Arguments:
-#   $1: Network
-#   $2: Supported networks (space-separated list)
-get_brain_api_url() {
-    network=$1
-    supported_networks=$2
-
-    web3signer_alias=$(_get_web3signer_alias "${network}" "${supported_networks}")
-
-    brain_url="http://brain.${web3signer_alias}:3000"
-
-    echo "[INFO - entrypoint] Web3Signer brain URL is: $brain_url" >&2
-
-    echo "$brain_url"
 }
 
 get_signer_api_url() {
@@ -119,13 +71,13 @@ get_signer_api_url() {
 #   $2: Checkpoint URL
 #
 # shellcheck disable=SC2120 # This script is sourced
-get_checkpoint_sync_url() {
-    checkpoint_flag="$1"
+get_checkpoint_sync_flag() {
+    checkpoint_flag_key="$1"
     checkpoint_url="$2"
 
     if [ -n "$checkpoint_url" ]; then
         echo "[INFO - entrypoint] Checkpoint sync URL is set to $checkpoint_url" >&2
-        echo "${checkpoint_flag}=${checkpoint_url}"
+        echo "${checkpoint_flag_key}=${checkpoint_url}"
     else
         echo "[WARN - entrypoint] Checkpoint sync URL is not set" >&2
     fi
@@ -152,7 +104,7 @@ get_mevboost_flag() {
         echo "[INFO - entrypoint] MEV Boost is enabled" >&2
         mevboost_url=$(_get_mevboost_url "$network")
 
-        if _is_mevboost_available; then
+        if _is_mevboost_available "${mevboost_url}"; then
             if [ "${skip_mevboost_url}" = "true" ]; then
                 mevboost_flag_to_add="${mevboost_flag}"
             else
@@ -252,17 +204,28 @@ _get_mevboost_url() {
 # Verify if the MEV Boost URL is reachable
 # In case curl is not installed, MEV Boost is assumed to be available
 _is_mevboost_available() {
-    if [ -z "${MEVBOOST_URL:-}" ]; then
+    mevboost_url=$1
+
+    if [ -z "${mevboost_url:-}" ]; then
         echo "[ERROR - entrypoint] MEV Boost URL is not set" >&2
         return 1
     fi
 
-    _verify_network_support "$network" "$supported_networks"
+    if ! command -v curl >/dev/null; then
+        echo "[WARN - entrypoint] curl is not installed. Skipping MEV Boost availability check" >&2
+        return 0
+    fi
 
-    if [ "$network" = "mainnet" ]; then
-        brain_url="http://brain.web3signer.dappnode:3000"
+    if curl --retry 5 --retry-delay 5 --retry-all-errors "${mevboost_url}"; then
+        echo "[INFO - entrypoint] MEV Boost is available" >&2
+        return 0
     else
-        brain_url="http://brain.web3signer-${network}.dappnode:3000"
+        echo "[ERROR - entrypoint] MEV Boost is enabled but the package at ${mevboost_url} is not reachable. Disabling MEV Boost..." >&2
+        curl -X POST -G 'http://my.dappnode/notification-send' \
+            --data-urlencode 'type=danger' \
+            --data-urlencode title="${mevboost_url} can not be reached" \
+            --data-urlencode 'body=Make sure the MEV Boost DNP for this network is available and running'
+        return 1
     fi
 }
 
@@ -277,6 +240,8 @@ _get_web3signer_alias() {
     else
         brain_url="http://brain.web3signer-${network}.dappnode:3000"
     fi
+
+    echo "${brain_url}"
 }
 
 # common_tools.sh APPENDED HERE BY WORKFLOW
