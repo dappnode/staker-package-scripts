@@ -2,42 +2,113 @@
 
 MEVBOOST_SUPPORTED_NETWORKS="mainnet holesky"
 
-# Set network-specific configuration
+# Returns the engine URL based on the execution client selected in the Stakers tab
 #
 # Arguments:
-#   $1: Network --> e.g. "mainnet"
-#   $2: Supported networks --> e.g. "mainnet testnet"
-#   $3: Network-specific flags (can be unset) --> e.g. "--foo --bar"
-set_beacon_config_by_network() {
+#   $1: Network
+#   $2: Supported networks
+get_engine_api_url() {
     network=$1
     supported_networks=$2
-    network_specific_flags=$3 # In case specific flags need to be set for a network
 
-    echo "[INFO - entrypoint] Initializing $network specific config for beacon node"
+    execution_dnp=$(_get_execution_dnp "$network" "$supported_networks")
+    execution_alias=$(get_client_network_alias "$execution_dnp")
 
-    _set_engine_api_url "$network" "$supported_networks"
-
-    add_flag_to_extra_opts "$network_specific_flags"
+    echo "http://${execution_alias}:8551"
 }
 
-# Set network-specific configuration for validator
+# Returns the execution RPC API URL based on the network and supported networks
 #
 # Arguments:
-#   $1: Network --> e.g. "mainnet"
-#   $2: Supported networks --> e.g. "mainnet testnet"
-#   $3: Client --> e.g. "nimbus"
-#   $4: Network-specific flags (optional) --> e.g. "--foo --bar"
-set_validator_config_by_network() {
+#   $1: Network
+#   $2: Supported networks (space-separated list)
+get_execution_rpc_api_url() {
     network=$1
     supported_networks=$2
-    client=$3
-    network_specific_flags=$4
 
-    echo "[INFO - entrypoint] Initializing $network specific config for validator"
+    _verify_network_support "$network" "$supported_networks"
 
-    _set_validator_api_urls "$network" "$supported_networks" "$client"
+    execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
 
-    add_flag_to_extra_opts "$network_specific_flags"
+    execution_alias=$(get_client_network_alias "$execution_dnp")
+
+    if [ -z "$execution_alias" ]; then
+        echo "[ERROR - entrypoint] Execution endpoint could not be determined" >&2
+        exit 1
+    fi
+
+    execution_rpc_api_url="http://${execution_alias}:8545"
+
+    echo "[INFO - entrypoint] Execution RPC API URL is: $execution_rpc_api_url" >&2
+
+    echo "$execution_rpc_api_url"
+}
+
+# Returns the beacon API URL based on the network and supported networks
+#
+# Arguments:
+#   $1: Network
+#   $2: Supported networks (space-separated list)
+get_beacon_api_url() {
+    network=$1
+    supported_networks=$2
+
+    _verify_network_support "$network" "$supported_networks"
+
+    consensus_dnp=$(get_value_from_global_env "CONSENSUS_CLIENT" "$network")
+
+    consensus_alias=$(get_client_network_alias "$consensus_dnp")
+
+    if [ -z "$consensus_alias" ]; then
+        echo "[ERROR - entrypoint] Beacon endpoint could not be determined" >&2
+        exit 1
+    fi
+
+    # If consensus client is nimbus, the beacon service is beacon-validator
+    if echo "$consensus_dnp" | grep -q "nimbus"; then
+        beacon_service="beacon-validator"
+        beacon_port="4500"
+    else
+        beacon_service="beacon-chain"
+        beacon_port="3500"
+    fi
+
+    beacon_api_url="http://${beacon_service}.${consensus_alias}:${beacon_port}"
+
+    echo "[INFO - entrypoint] Beacon API URL is: $beacon_api_url" >&2
+
+    echo "$beacon_api_url"
+}
+
+# Returns the brain (from the Web3Signer package) URL based on the network and supported networks
+#
+# Arguments:
+#   $1: Network
+#   $2: Supported networks (space-separated list)
+get_brain_api_url() {
+    network=$1
+    supported_networks=$2
+
+    web3signer_alias=$(_get_web3signer_alias "${network}" "${supported_networks}")
+
+    brain_url="http://brain.${web3signer_alias}:3000"
+
+    echo "[INFO - entrypoint] Web3Signer brain URL is: $brain_url" >&2
+
+    echo "$brain_url"
+}
+
+get_signer_api_url() {
+    network=$1
+    supported_networks=$2
+
+    web3signer_alias=$(_get_web3signer_alias "${network}" "${supported_networks}")
+
+    signer_url="http://web3signer.${web3signer_alias}:9000"
+
+    echo "[INFO - entrypoint] Web3Signer signer URL is: $signer_url" >&2
+
+    echo "$signer_url"
 }
 
 # Set the checkpoint sync URL to the EXTRA_OPTS environment variable
@@ -48,15 +119,15 @@ set_validator_config_by_network() {
 #   $2: Checkpoint URL
 #
 # shellcheck disable=SC2120 # This script is sourced
-set_checkpoint_sync_url() {
+get_checkpoint_sync_url() {
     checkpoint_flag="$1"
     checkpoint_url="$2"
 
     if [ -n "$checkpoint_url" ]; then
-        echo "[INFO - entrypoint] Checkpoint sync URL is set to $checkpoint_url"
-        add_flag_to_extra_opts "${checkpoint_flag}=${checkpoint_url}"
+        echo "[INFO - entrypoint] Checkpoint sync URL is set to $checkpoint_url" >&2
+        echo "${checkpoint_flag}=${checkpoint_url}"
     else
-        echo "[WARN - entrypoint] Checkpoint sync URL is not set"
+        echo "[WARN - entrypoint] Checkpoint sync URL is not set" >&2
     fi
 }
 
@@ -69,190 +140,142 @@ set_checkpoint_sync_url() {
 #   $3: Skip MEV Boost URL flag --> e.g. "true" to skip setting the URL
 #
 # shellcheck disable=SC2120 # This script is sourced
-set_mevboost_flag() {
+get_mevboost_flag() {
     network=$1
     mevboost_flag=$2
     skip_mevboost_url=$3
 
-    mevboost_enabled=$(get_value_from_global_env "MEVBBOST" "$network")
+    mevboost_enabled=$(get_value_from_global_env "MEVBOOST" "$network")
 
     # shellcheck disable=SC2154
     if [ "${mevboost_enabled}" = "true" ]; then
-
-        echo "[INFO - entrypoint] MEV Boost is enabled"
-        _set_mevboost_url "$network"
+        echo "[INFO - entrypoint] MEV Boost is enabled" >&2
+        mevboost_url=$(_get_mevboost_url "$network")
 
         if _is_mevboost_available; then
-
             if [ "${skip_mevboost_url}" = "true" ]; then
-                add_flag_to_extra_opts "${mevboost_flag}"
+                mevboost_flag_to_add="${mevboost_flag}"
             else
-                add_flag_to_extra_opts "${mevboost_flag}=${MEVBOOST_URL}"
+                mevboost_flag_to_add="${mevboost_flag}=${mevboost_url}"
             fi
+
+            echo "[INFO - entrypoint] MEV Boost flag is set to $mevboost_flag_to_add" >&2
+            echo "${mevboost_flag_to_add}"
         fi
     else
-        echo "[INFO - entrypoint] MEV Boost is disabled"
+        echo "[INFO - entrypoint] MEV Boost is disabled" >&2
     fi
 }
 
 # Set graffiti to the first 32 characters if it is set
-format_graffiti() {
+get_valid_graffiti() {
+    graffiti="$1"
+
     # Save current locale settings
     oLang="$LANG" oLcAll="$LC_ALL"
 
     # Set locale to C for consistent behavior in string operations
     LANG=C LC_ALL=C
 
-    if [ -z "$GRAFFITI" ]; then
+    if [ -z "$graffiti" ]; then
         valid_graffiti=""
     else
-        # Truncate GRAFFITI to 32 characters if it is set
-        valid_graffiti=$(echo "$GRAFFITI" | cut -c 1-32)
+        # Truncate graffiti to 32 characters if it is set
+        valid_graffiti=$(echo "$graffiti" | cut -c 1-32)
     fi
 
-    echo "[INFO] Using graffiti: $valid_graffiti"
+    echo "[INFO] Using graffiti: $valid_graffiti" >&2
 
-    export GRAFFITI="$valid_graffiti"
+    echo "$valid_graffiti"
 
     # Restore locale settings
     LANG="$oLang" LC_ALL="$oLcAll"
 }
 
-validate_fee_recipient() {
+get_valid_fee_recipient() {
+    fee_recipient="$1"
 
-    if echo "$FEE_RECIPIENT" | grep -Eq '^0x[a-fA-F0-9]{40}$'; then
-        echo "[INFO - entrypoint] Fee recipient address (${FEE_RECIPIENT}) is valid"
+    if echo "$fee_recipient" | grep -Eq '^0x[a-fA-F0-9]{40}$'; then
+        echo "[INFO - entrypoint] Fee recipient address (${fee_recipient}) is valid" >&2
     else
-        echo "[WARN - entrypoint] Fee recipient address is invalid. It should be an Ethereum address"
-        echo "[WARN - entrypoint] Setting the fee recipient address to the burn address"
-        export FEE_RECIPIENT="0x0000000000000000000000000000000000000000"
+        echo "[WARN - entrypoint] Fee recipient address is invalid. It should be an Ethereum address" >&2
+        echo "[WARN - entrypoint] Setting the fee recipient address to the burn address" >&2
+        fee_recipient="0x0000000000000000000000000000000000000000"
     fi
 
+    echo "$fee_recipient"
 }
 
 # INTERNAL FUNCTIONS (Not meant to be called directly)
 
-# Set the engine URL based on the execution client selected in the Stakers tab
+# Set the DNP name of the execution client selected in the Stakers tab to the execution_dnp environment variable
 #
 # Arguments:
 #   $1: Network
 #   $2: Supported networks
-_set_engine_api_url() {
-    network=$1
-    supported_networks=$2
-
-    _set_execution_dnp "$network" "$supported_networks"
-
-    execution_alias=$(get_client_network_alias "$EXECUTION_DNP")
-
-    export ENGINE_API_URL="http://${execution_alias}:8551"
-}
-
-# Set the validator API URLs based on the network and client
-#
-# Arguments:
-#   $1: Network
-#   $2: Supported networks
-#   $3: Client
-_set_validator_api_urls() {
-    network=$1
-    supported_networks=$2
-    client=$3
-
-    # TODO: Improve this following export_beacon_api_url of dvt_lsd tools
-
-    _verify_network_support "$network" "$supported_networks"
-
-    if [ -z "$client" ]; then
-        echo "[ERROR - entrypoint] Client is not set"
-        exit 1
-    fi
-
-    if [ "$client" = "nimbus" ]; then
-        beacon_service="beacon-validator"
-        beacon_port="4500"
-    else
-        beacon_service="beacon-chain"
-        beacon_port="3500"
-    fi
-
-    if [ "${network}" = "mainnet" ]; then
-        export WEB3SIGNER_API_URL="http://web3signer.web3signer.dappnode:9000"
-        export BEACON_API_URL="http://${beacon_service}.${client}.dappnode:${beacon_port}"
-
-    else
-        export WEB3SIGNER_API_URL="http://web3signer.web3signer-${network}.dappnode:9000"
-        export BEACON_API_URL="http://${beacon_service}.${client}-${network}.dappnode:${beacon_port}"
-
-    fi
-
-    echo "[INFO - entrypoint] Web3signer URL is set to $WEB3SIGNER_API_URL"
-    echo "[INFO - entrypoint] Beacon API URL is set to $BEACON_API_URL"
-
-}
-
-# Set the DNP name of the execution client selected in the Stakers tab to the EXECUTION_DNP environment variable
-#
-# Arguments:
-#   $1: Network
-#   $2: Supported networks
-_set_execution_dnp() {
+_get_execution_dnp() {
     network=$1
     supported_networks=$2
 
     _verify_network_support "$network" "$supported_networks"
+    execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
 
-    EXECUTION_DNP=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
-
-    if [ -z "$EXECUTION_DNP" ]; then
-        echo "[ERROR - entrypoint] Execution client is not set for $network"
+    if [ -z "$execution_dnp" ]; then
+        echo "[ERROR - entrypoint] Execution client is not set for $network" >&2
         exit 1
     fi
 
-    export EXECUTION_DNP
+    # Return the execution DNP name via stdout
+    echo "$execution_dnp"
 }
 
 # Set the MEV Boost URL based on the network
 #
 # Arguments:
 #   $1: Network
-_set_mevboost_url() {
+_get_mevboost_url() {
     network=$1
-    verify_network_support "$network" "$MEVBOOST_SUPPORTED_NETWORKS"
+    _verify_network_support "$network" "$MEVBOOST_SUPPORTED_NETWORKS"
 
     # If network is mainnet and MEV-Boost is enabled, set the MEV-Boost URL
     if [ "${network}" = "mainnet" ]; then
-        export MEVBOOST_URL="http://mev-boost.dappnode:18550"
+        mevboost_url="http://mev-boost.dappnode:18550"
     else
-        export MEVBOOST_URL="http://mev-boost-${network}.dappnode:18550"
+        mevboost_url="http://mev-boost-${network}.dappnode:18550"
     fi
 
-    echo "[INFO - entrypoint] MEV Boost URL is set to $MEVBOOST_URL"
+    echo "[INFO - entrypoint] MEV Boost URL is: $mevboost_url" >&2
+
+    echo "$mevboost_url"
 }
 
 # Verify if the MEV Boost URL is reachable
 # In case curl is not installed, MEV Boost is assumed to be available
 _is_mevboost_available() {
     if [ -z "${MEVBOOST_URL:-}" ]; then
-        echo "[ERROR - entrypoint] MEV Boost URL is not set"
+        echo "[ERROR - entrypoint] MEV Boost URL is not set" >&2
         return 1
     fi
 
-    if ! command -v curl >/dev/null; then
-        echo "[WARN - entrypoint] curl is not installed. Skipping MEV Boost availability check"
-        return 0
-    fi
+    _verify_network_support "$network" "$supported_networks"
 
-    if curl --retry 5 --retry-delay 5 --retry-all-errors "${MEVBOOST_URL}"; then
-        echo "[INFO - entrypoint] MEV Boost is available"
-        return 0
+    if [ "$network" = "mainnet" ]; then
+        brain_url="http://brain.web3signer.dappnode:3000"
     else
-        echo "[ERROR - entrypoint] MEV Boost is enabled but the package at ${MEVBOOST_URL} is not reachable. Disabling MEV Boost..."
-        curl -X POST -G 'http://my.dappnode/notification-send' \
-            --data-urlencode 'type=danger' \
-            --data-urlencode title="${MEVBOOST_URL} can not be reached" \
-            --data-urlencode 'body=Make sure the MEV Boost DNP for this network is available and running'
-        return 1
+        brain_url="http://brain.web3signer-${network}.dappnode:3000"
+    fi
+}
+
+_get_web3signer_alias() {
+    network=$1
+    supported_networks=$2
+
+    _verify_network_support "$network" "$supported_networks"
+
+    if [ "$network" = "mainnet" ]; then
+        brain_url="http://brain.web3signer.dappnode:3000"
+    else
+        brain_url="http://brain.web3signer-${network}.dappnode:3000"
     fi
 }
 
