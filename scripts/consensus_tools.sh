@@ -236,19 +236,4 @@ _is_mevboost_available() {
     fi
 }
 
-_get_web3signer_alias() {
-    network=$1
-    supported_networks=$2
-
-    _verify_network_support "$network" "$supported_networks"
-
-    if [ "$network" = "mainnet" ]; then
-        brain_url="http://brain.web3signer.dappnode:3000"
-    else
-        brain_url="http://brain.web3signer-${network}.dappnode:3000"
-    fi
-
-    echo "${brain_url}"
-}
-
 # common_tools.sh APPENDED HERE BY WORKFLOW
