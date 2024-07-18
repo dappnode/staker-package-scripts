@@ -4,7 +4,7 @@
 # Arguments:
 #   $1: Network
 #   $2: Supported networks (space-separated list)
-get_execution_rpc_api_url() {
+get_execution_rpc_api_url_from_global_env() {
     network=$1
     supported_networks=$2
 
@@ -31,7 +31,7 @@ get_execution_rpc_api_url() {
 # Arguments:
 #   $1: Network
 #   $2: Supported networks (space-separated list)
-get_beacon_api_url() {
+get_beacon_api_url_from_global_env() {
     network=$1
     supported_networks=$2
 
@@ -79,3 +79,5 @@ get_brain_api_url() {
 
     echo "$brain_url"
 }
+
+# common_tools.sh APPENDED HERE BY WORKFLOW

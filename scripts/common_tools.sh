@@ -6,7 +6,7 @@ STAKER_GLOBAL_ENVS="EXECUTION_CLIENT CONSENSUS_CLIENT MEVBOOST"
 #
 # Arguments:
 #   $1: Flag to add
-add_flag_to_extra_opts_safely_safely() {
+add_flag_to_extra_opts_safely() {
     extra_opts=$1
     flag=$2
 
