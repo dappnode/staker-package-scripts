@@ -42,6 +42,13 @@ get_beacon_api_url() {
         beacon_port="3500"
     fi
 
+    # TODO: What if a public package is published for a consensus client?
+    if [ "$network" = "mainnet" ]; then
+        consensus_alias="${consensus_client}.dappnode"
+    else
+        consensus_alias="${consensus_client}-${network}.dappnode"
+    fi
+
     beacon_api_url="http://${beacon_service}.${consensus_alias}:${beacon_port}"
 
     echo "[INFO - entrypoint] Beacon API URL is: $beacon_api_url" >&2
