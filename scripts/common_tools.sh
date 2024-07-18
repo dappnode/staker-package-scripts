@@ -132,10 +132,10 @@ _get_web3signer_alias() {
     _verify_network_support "$network" "$supported_networks"
 
     if [ "$network" = "mainnet" ]; then
-        brain_url="http://brain.web3signer.dappnode:3000"
+        signer_alias="web3signer.dappnode"
     else
-        brain_url="http://brain.web3signer-${network}.dappnode:3000"
+        signer_alias="web3signer-${network}.dappnode"
     fi
 
-    echo "${brain_url}"
+    echo "${signer_alias}"
 }
