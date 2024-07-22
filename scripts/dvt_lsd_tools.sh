@@ -71,9 +71,9 @@ get_brain_api_url() {
     network=$1
     supported_networks=$2
 
-    web3signer_alias=$(_get_web3signer_alias "${network}" "${supported_networks}")
+    web3signer_domain=$(get_web3signer_domain "${network}" "${supported_networks}")
 
-    brain_url="http://brain.${web3signer_alias}:3000"
+    brain_url="http://brain.${web3signer_domain}:3000"
 
     echo "[INFO - entrypoint] Web3Signer brain URL is: $brain_url" >&2
 

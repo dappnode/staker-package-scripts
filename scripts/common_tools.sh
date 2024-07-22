@@ -74,6 +74,21 @@ get_client_network_alias() {
     echo "${client_alias}.dappnode"
 }
 
+get_web3signer_domain() {
+    network=$1
+    supported_networks=$2
+
+    _verify_network_support "$network" "$supported_networks"
+
+    if [ "$network" = "mainnet" ]; then
+        web3signer_domain="web3signer.dappnode"
+    else
+        web3signer_domain="web3signer-${network}.dappnode"
+    fi
+
+    echo "${web3signer_domain}"
+}
+
 # Convert a string to uppercase
 #
 # Arguments:
@@ -123,19 +138,4 @@ _is_value_in_array() {
     done
 
     return 1
-}
-
-_get_web3signer_alias() {
-    network=$1
-    supported_networks=$2
-
-    _verify_network_support "$network" "$supported_networks"
-
-    if [ "$network" = "mainnet" ]; then
-        signer_alias="web3signer.dappnode"
-    else
-        signer_alias="web3signer-${network}.dappnode"
-    fi
-
-    echo "${signer_alias}"
 }

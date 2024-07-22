@@ -61,9 +61,9 @@ get_signer_api_url() {
     network=$1
     supported_networks=$2
 
-    web3signer_alias=$(_get_web3signer_alias "${network}" "${supported_networks}")
+    web3signer_domain=$(get_web3signer_domain "${network}" "${supported_networks}")
 
-    signer_url="http://web3signer.${web3signer_alias}:9000"
+    signer_url="http://web3signer.${web3signer_domain}:9000"
 
     echo "[INFO - entrypoint] Web3Signer signer URL is: $signer_url" >&2
 
