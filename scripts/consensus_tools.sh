@@ -143,7 +143,7 @@ get_valid_graffiti() {
         valid_graffiti=$(echo "$graffiti" | cut -c 1-32)
     fi
 
-    echo "[INFO] Using graffiti: $valid_graffiti" >&2
+    echo "[INFO - entrypoint] Using graffiti: $valid_graffiti" >&2
 
     echo "$valid_graffiti"
 
