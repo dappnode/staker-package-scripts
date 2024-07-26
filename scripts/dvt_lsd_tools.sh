@@ -8,22 +8,27 @@ get_execution_rpc_api_url_from_global_env() {
     network=$1
     supported_networks=$2
 
-    _verify_network_support "$network" "$supported_networks"
-
-    execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
-
-    execution_alias=$(get_client_network_alias "$execution_dnp")
-
-    if [ -z "$execution_alias" ]; then
-        echo "[ERROR - entrypoint] Execution endpoint could not be determined" >&2
-        exit 1
-    fi
+    execution_alias=$(_get_execution_alias "$network" "$supported_networks")
 
     execution_rpc_api_url="http://${execution_alias}:8545"
 
     echo "[INFO - entrypoint] Execution RPC API URL is: $execution_rpc_api_url" >&2
 
     echo "$execution_rpc_api_url"
+}
+
+get_execution_ws_url_from_global_env() {
+    network=$1
+    supported_networks=$2
+
+    execution_alias=$(_get_execution_alias "$network" "$supported_networks")
+
+    # TODO: Set all execution clients WS port to 8546
+    execution_ws_url="ws://${execution_alias}:8546"
+
+    echo "[INFO - entrypoint] Execution WS URL is: $execution_ws_url" >&2
+
+    echo "$execution_ws_url"
 }
 
 # Returns the beacon API URL based on the network and supported networks
@@ -78,6 +83,24 @@ get_brain_api_url() {
     echo "[INFO - entrypoint] Web3Signer brain URL is: $brain_url" >&2
 
     echo "$brain_url"
+}
+
+_get_execution_alias() {
+    network=$1
+    supported_networks=$2
+
+    _verify_network_support "$network" "$supported_networks"
+
+    execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
+
+    execution_alias=$(get_client_network_alias "$execution_dnp")
+
+    if [ -z "$execution_alias" ]; then
+        echo "[ERROR - entrypoint] Execution endpoint could not be determined" >&2
+        exit 1
+    fi
+
+    echo "$execution_alias"
 }
 
 # common_tools.sh APPENDED HERE BY WORKFLOW
