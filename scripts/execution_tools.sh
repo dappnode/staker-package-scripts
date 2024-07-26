@@ -8,12 +8,13 @@
 get_jwt_path() {
     network=$1
     supported_networks=$2
+    security_base_path=$3
 
     consensus_short_dnp=$(_get_consensus_short_dnp "$network" "$supported_networks")
 
     echo "[INFO - entrypoint] Using $consensus_short_dnp JWT" >&2
 
-    jwt_path="/security/$consensus_short_dnp/jwtsecret.hex"
+    jwt_path="$security_base_path/$consensus_short_dnp/jwtsecret.hex"
 
     if [ ! -f "${jwt_path}" ]; then
         echo "[ERROR - entrypoint] JWT not found at ${jwt_path}" >&2
