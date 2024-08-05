@@ -20,11 +20,18 @@ get_execution_rpc_api_url_from_global_env() {
 get_execution_ws_url_from_global_env() {
     network=$1
     supported_networks=$2
+    port=8546
+
+    execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
+
+    # TODO: Set all execution clients WS port to 8546
+    if [ "$execution_dnp" = "holesky-erigon.dnp.dappnode.eth" ] || [ "$execution_dnp" = "nethermind.dnp.dappnode.eth" ]; then
+        port=8545
+    fi
 
     execution_alias=$(_get_execution_alias "$network" "$supported_networks")
 
-    # TODO: Set all execution clients WS port to 8546
-    execution_ws_url="ws://${execution_alias}:8546"
+    execution_ws_url="ws://${execution_alias}:${port}"
 
     echo "[INFO - entrypoint] Execution WS URL is: $execution_ws_url" >&2
 
