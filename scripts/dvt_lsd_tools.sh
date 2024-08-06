@@ -25,7 +25,7 @@ get_execution_ws_url_from_global_env() {
     execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
 
     # TODO: Set all execution clients WS port to 8546
-    if [ "$execution_dnp" = "holesky-erigon.dnp.dappnode.eth" ] || [ "$execution_dnp" = "nethermind.dnp.dappnode.eth" ]; then
+    if [ "$execution_dnp" = "holesky-erigon.dnp.dappnode.eth" ] || [ "$execution_dnp" = "nethermind.public.dappnode.eth" ]; then
         port=8545
     fi
 
