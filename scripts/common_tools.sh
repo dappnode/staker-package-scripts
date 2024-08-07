@@ -1,7 +1,6 @@
 #!/bin/sh
 
 STAKER_GLOBAL_ENVS="EXECUTION_CLIENT CONSENSUS_CLIENT MEVBOOST"
-AVAILABLE_NETWORKS="mainnet holesky gnosis lukso sepolia"
 
 # Internal function to add a flag to EXTRA_OPTS if it's not already included
 #

@@ -2,6 +2,7 @@
 
 MEVBOOST_SUPPORTED_NETWORKS="mainnet holesky"
 
+# TODO: Remove this function once all clients have migrated to staker network
 # Returns the engine URL based on the execution client selected in the Stakers tab
 #
 # Arguments:
