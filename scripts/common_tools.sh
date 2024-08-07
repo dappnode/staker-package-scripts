@@ -1,6 +1,7 @@
 #!/bin/sh
 
 STAKER_GLOBAL_ENVS="EXECUTION_CLIENT CONSENSUS_CLIENT MEVBOOST"
+AVAILABLE_NETWORKS="mainnet holesky gnosis lukso sepolia"
 
 # Internal function to add a flag to EXTRA_OPTS if it's not already included
 #
@@ -72,6 +73,36 @@ get_client_network_alias() {
     esac
 
     echo "${client_alias}.dappnode"
+}
+
+get_jwt_secret_by_network() {
+    network=$1
+
+    case $network in
+    mainnet)
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000001"
+        ;;
+    holesky)
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000004268"
+        ;;
+    gnosis)
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000064"
+        ;;
+    lukso)
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e400000002a"
+        ;;
+    sepolia)
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000aa36a7"
+        ;;
+    *)
+        echo "[ERROR - entrypoint] NETWORK $network is not supported" >&2
+        exit 1
+        ;;
+    esac
+
+    echo "[INFO - entrypoint] JWT secret for $network is: $jwt" >&2
+
+    echo "$jwt"
 }
 
 get_web3signer_domain() {
