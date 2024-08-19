@@ -1,4 +1,6 @@
 #!/bin/sh
+
+# TODO: Remove this function in favour of http://execution.${NETWORK}.dncore.dappnode:8545
 # Returns the execution RPC API URL based on the network and supported networks
 #
 # Arguments:
@@ -17,6 +19,7 @@ get_execution_rpc_api_url_from_global_env() {
     echo "$execution_rpc_api_url"
 }
 
+# TODO: Remove this function in favour of ws://execution.${NETWORK}.dncore.dappnode:8546 (ONLY when all clients expose WS on 8546)
 get_execution_ws_url_from_global_env() {
     network=$1
     supported_networks=$2
@@ -25,7 +28,7 @@ get_execution_ws_url_from_global_env() {
     execution_dnp=$(get_value_from_global_env "EXECUTION_CLIENT" "$network")
 
     # TODO: Set all execution clients WS port to 8546
-    if [ "$execution_dnp" = "holesky-erigon.dnp.dappnode.eth" ] || [ "$execution_dnp" = "nethermind.public.dappnode.eth" ]; then
+    if [ "$execution_dnp" = "holesky-erigon.dnp.dappnode.eth" ] || [ "$execution_dnp" = "nethermind.public.dappnode.eth" ] || [ "$execution_dnp" = "nethermind-xdai.dnp.dappnode.eth" ]; then
         port=8545
     fi
 
@@ -38,6 +41,7 @@ get_execution_ws_url_from_global_env() {
     echo "$execution_ws_url"
 }
 
+# TODO: Remove this function in favour of http://beacon-chain.holesky.dncore.dappnode:3500 (ONLY when nimbus client has been published with 2 services)
 # Returns the beacon API URL based on the network and supported networks
 #
 # Arguments:
