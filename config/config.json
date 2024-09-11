@@ -1,111 +1,208 @@
 {
-  "ports": {
-    "executionHttpRpc": 8545,
-    "executionWsRpc": 8546,
-    "executionEngine": 8551,
-    "beaconApi": 3500,
-    "validatorApi": 3500,
-    "signerApi": 9000,
-    "brainApi": 3000
-  },
-  "clientConfig": {
-    "prysm": {
-      "validatorApiToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MxwOozSH-TLbW_XKepjyYDHm2IT8Ki0tD3AHuajfNMg"
-    },
-    "lighthouse": {
-      "validatorApiToken": "api-token-0x0200e6ce18e26fd38caca7ae1bfb9e2bba7efb20ed2746ad17f2f6dda44603152d"
-    },
-    "teku": {
-      "validatorApiToken": "cd4892ca35d2f5d3e2301a65fc7aa660"
-    },
-    "lodestar": {
-      "validatorApiToken": "api-token-0x7fd16fff6453982a5d8bf14617e7823b68cd18ade59985befe64e0a659300e7d"
-    },
-    "nimbus": {
-      "validatorApiToken": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MxwOozSH-TLbW_XKepjyYDHm2IT8Ki0tD3AHuajfNMg"
+  "mainnet": {
+    "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000001",
+    "packages": {
+      "execution": {
+        "geth.dnp.dappnode.eth": {
+          "apis": {
+            "httpRpc": {
+              "port": 8545
+            },
+            "wsRpc": {
+              "port": 8546
+            },
+            "engine": {
+              "port": 8551
+            }
+          }
+        },
+        "nethermind.public.dappnode.eth": {
+          "apis": {
+            "httpRpc": {
+              "port": 8545
+            },
+            "wsRpc": {
+              "port": 8546
+            },
+            "engine": {
+              "port": 8551
+            }
+          }
+        },
+        "besu.public.dappnode.eth": {
+          "apis": {
+            "httpRpc": {
+              "port": 8545
+            },
+            "wsRpc": {
+              "port": 8546
+            },
+            "engine": {
+              "port": 8551
+            }
+          }
+        },
+        "erigon.dnp.dappnode.eth": {
+          "apis": {
+            "httpRpc": {
+              "port": 8545
+            },
+            "wsRpc": {
+              "port": 8546
+            },
+            "engine": {
+              "port": 8551
+            }
+          }
+        },
+        "reth.dnp.dappnode.eth": {
+          "apis": {
+            "httpRpc": {
+              "port": 8545
+            },
+            "wsRpc": {
+              "port": 8546
+            },
+            "engine": {
+              "port": 8551
+            }
+          }
+        }
+      },
+      "consensus": {
+        "prysm.dnp.dappnode.eth": {
+          "apis": {
+            "beacon": {
+              "port": 3500
+            },
+            "validator": {
+              "port": 3500,
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MxwOozSH-TLbW_XKepjyYDHm2IT8Ki0tD3AHuajfNMg"
+            }
+          }
+        },
+        "lighthouse.dnp.dappnode.eth": {
+          "apis": {
+            "beacon": {
+              "port": 3500
+            },
+            "validator": {
+              "port": 3500,
+              "token": "api-token-0x0200e6ce18e26fd38caca7ae1bfb9e2bba7efb20ed2746ad17f2f6dda44603152d"
+            }
+          }
+        },
+        "teku.dnp.dappnode.eth": {
+          "apis": {
+            "beacon": {
+              "port": 3500
+            },
+            "validator": {
+              "port": 3500,
+              "token": "cd4892ca35d2f5d3e2301a65fc7aa660"
+            }
+          }
+        },
+        "lodestar.dnp.dappnode.eth": {
+          "apis": {
+            "beacon": {
+              "port": 3500
+            },
+            "validator": {
+              "port": 3500,
+              "token": "api-token-0x7fd16fff6453982a5d8bf14617e7823b68cd18ade59985befe64e0a659300e7d"
+            }
+          }
+        },
+        "nimbus.dnp.dappnode.eth": {
+          "apis": {
+            "beacon": {
+              "port": 3500
+            },
+            "validator": {
+              "port": 3500,
+              "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.e30.MxwOozSH-TLbW_XKepjyYDHm2IT8Ki0tD3AHuajfNMg"
+            }
+          }
+        }
+      },
+      "signer": {
+        "web3signer.dnp.dappnode.eth": {
+          "apis": {
+            "signer": {
+              "port": 9000
+            },
+            "brain": {
+              "port": 3000
+            }
+          }
+        }
+      },
+      "mevBoost": {
+        "mev-boost.dnp.dappnode.eth": {
+          "apis": { "mevBoost": { "port": 18550 } }
+        }
+      }
     }
   },
-  "networkConfig": {
-    "mainnet": {
-      "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000001",
-      "packages": {
-        "execution": [
-          "geth.dnp.dappnode.eth",
-          "nethermind.public.dappnode.eth",
-          "besu.public.dappnode.eth",
-          "erigon.dnp.dappnode.eth",
-          "reth.dnp.dappnode.eth"
-        ],
-        "consensus": [
-          "prysm.dnp.dappnode.eth",
-          "lighthouse.dnp.dappnode.eth",
-          "teku.dnp.dappnode.eth",
-          "lodestar.dnp.dappnode.eth",
-          "nimbus.dnp.dappnode.eth"
-        ],
-        "signer": ["web3signer.dnp.dappnode.eth"],
-        "mevBoost": ["mev-boost.dnp.dappnode.eth"]
-      }
-    },
-    "holesky": {
-      "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000004268",
-      "packages": {
-        "execution": [
-          "holesky-geth.dnp.dappnode.eth",
-          "holesky-nethermind.dnp.dappnode.eth",
-          "holesky-besu.dnp.dappnode.eth",
-          "holesky-erigon.dnp.dappnode.eth",
-          "holesky-reth.dnp.dappnode.eth"
-        ],
-        "consensus": [
-          "prysm-holesky.dnp.dappnode.eth",
-          "lighthouse-holesky.dnp.dappnode.eth",
-          "teku-holesky.dnp.dappnode.eth",
-          "lodestar-holesky.dnp.dappnode.eth",
-          "nimbus-holesky.dnp.dappnode.eth"
-        ],
-        "signer": ["web3signer-holesky.dnp.dappnode.eth"],
-        "mevBoost": ["mev-boost-holesky.dnp.dappnode.eth"]
-      }
-    },
-    "gnosis": {
-      "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000064",
-      "packages": {
-        "execution": [
-          "nethermind-xdai.dnp.dappnode.eth",
-          "gnosis-erigon.dnp.dappnode.eth"
-        ],
-        "consensus": [
-          "gnosis-beacon-chain-prysm.dnp.dappnode.eth",
-          "lighthouse-gnosis.dnp.dappnode.eth",
-          "teku-gnosis.dnp.dappnode.eth",
-          "lodestar-gnosis.dnp.dappnode.eth",
-          "nimbus-gnosis.dnp.dappnode.eth"
-        ],
-        "signer": ["web3signer-gnosis.dnp.dappnode.eth"],
-        "mevBoost": []
-      }
-    },
-    "lukso": {
-      "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e400000002a",
-      "packages": {
-        "execution": ["lukso-geth.dnp.dappnode.eth"],
-        "consensus": [
-          "prysm-lukso.dnp.dappnode.eth",
-          "teku-lukso.dnp.dappnode.eth"
-        ],
-        "signer": ["web3signer-lukso.dnp.dappnode.eth"],
-        "mevBoost": []
-      }
-    },
-    "sepolia": {
-      "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000aa36a7",
-      "packages": {
-        "execution": ["sepolia-geth.dnp.dappnode.eth"],
-        "consensus": ["prysm-sepolia.dnp.dappnode.eth"],
-        "signer": [],
-        "mevBoost": []
-      }
+  "holesky": {
+    "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000004268",
+    "packages": {
+      "execution": [
+        "holesky-geth.dnp.dappnode.eth",
+        "holesky-nethermind.dnp.dappnode.eth",
+        "holesky-besu.dnp.dappnode.eth",
+        "holesky-erigon.dnp.dappnode.eth",
+        "holesky-reth.dnp.dappnode.eth"
+      ],
+      "consensus": [
+        "prysm-holesky.dnp.dappnode.eth",
+        "lighthouse-holesky.dnp.dappnode.eth",
+        "teku-holesky.dnp.dappnode.eth",
+        "lodestar-holesky.dnp.dappnode.eth",
+        "nimbus-holesky.dnp.dappnode.eth"
+      ],
+      "signer": ["web3signer-holesky.dnp.dappnode.eth"],
+      "mevBoost": ["mev-boost-holesky.dnp.dappnode.eth"]
+    }
+  },
+  "gnosis": {
+    "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000064",
+    "packages": {
+      "execution": [
+        "nethermind-xdai.dnp.dappnode.eth",
+        "gnosis-erigon.dnp.dappnode.eth"
+      ],
+      "consensus": [
+        "gnosis-beacon-chain-prysm.dnp.dappnode.eth",
+        "lighthouse-gnosis.dnp.dappnode.eth",
+        "teku-gnosis.dnp.dappnode.eth",
+        "lodestar-gnosis.dnp.dappnode.eth",
+        "nimbus-gnosis.dnp.dappnode.eth"
+      ],
+      "signer": ["web3signer-gnosis.dnp.dappnode.eth"],
+      "mevBoost": []
+    }
+  },
+  "lukso": {
+    "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e400000002a",
+    "packages": {
+      "execution": ["lukso-geth.dnp.dappnode.eth"],
+      "consensus": [
+        "prysm-lukso.dnp.dappnode.eth",
+        "teku-lukso.dnp.dappnode.eth"
+      ],
+      "signer": ["web3signer-lukso.dnp.dappnode.eth"],
+      "mevBoost": []
+    }
+  },
+  "sepolia": {
+    "jwt": "7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000aa36a7",
+    "packages": {
+      "execution": ["sepolia-geth.dnp.dappnode.eth"],
+      "consensus": ["prysm-sepolia.dnp.dappnode.eth"],
+      "signer": [],
+      "mevBoost": []
     }
   }
 }
