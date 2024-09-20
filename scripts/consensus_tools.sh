@@ -219,12 +219,12 @@ _is_mevboost_available() {
         return 1
     fi
 
-    if ! command -v curl >/dev/null; then
+    if ! command -v curl >/dev/null 2>&1; then
         echo "[WARN - entrypoint] curl is not installed. Skipping MEV Boost availability check" >&2
         return 0
     fi
 
-    if curl --retry 5 --retry-delay 5 --retry-all-errors "${mevboost_url}"; then
+    if curl --retry 5 --retry-delay 5 --retry-all-errors "${mevboost_url}" >/dev/null 2>&1; then
         echo "[INFO - entrypoint] MEV Boost is available" >&2
         return 0
     else
@@ -232,7 +232,8 @@ _is_mevboost_available() {
         curl -X POST -G 'http://my.dappnode/notification-send' \
             --data-urlencode 'type=danger' \
             --data-urlencode title="${mevboost_url} can not be reached" \
-            --data-urlencode 'body=Make sure the MEV Boost DNP for this network is available and running'
+            --data-urlencode 'body=Make sure the MEV Boost DNP for this network is available and running' \
+            >/dev/null 2>&1
         return 1
     fi
 }
