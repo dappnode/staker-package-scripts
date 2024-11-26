@@ -1,0 +1,260 @@
+{
+  "type": "object",
+  "properties": {
+    "apis": {
+      "type": "object",
+      "properties": {
+        "execution": {
+          "type": "object",
+          "properties": {
+            "httpRpc": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            },
+            "wsRpc": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            },
+            "engine": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            }
+          },
+          "required": ["httpRpc", "wsRpc", "engine"]
+        },
+        "consensus": {
+          "type": "object",
+          "properties": {
+            "beacon": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            },
+            "validator": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" },
+                "auth": {
+                  "type": "object",
+                  "properties": {
+                    "prysm": { "type": "string" },
+                    "lighthouse": { "type": "string" },
+                    "teku": { "type": "string" },
+                    "lodestar": { "type": "string" },
+                    "nimbus": { "type": "string" }
+                  },
+                  "required": [
+                    "prysm",
+                    "lighthouse",
+                    "teku",
+                    "lodestar",
+                    "nimbus"
+                  ]
+                }
+              },
+              "required": ["port", "auth"]
+            }
+          },
+          "required": ["beacon", "validator"]
+        },
+        "signer": {
+          "type": "object",
+          "properties": {
+            "web3signer": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            },
+            "brain": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            }
+          },
+          "required": ["web3signer", "brain"]
+        },
+        "mev-boost": {
+          "type": "object",
+          "properties": {
+            "mev-boost": {
+              "type": "object",
+              "properties": {
+                "port": { "type": "integer" }
+              },
+              "required": ["port"]
+            }
+          },
+          "required": ["mev-boost"]
+        }
+      },
+      "required": ["execution", "consensus", "signer", "mev-boost"]
+    },
+    "networks": {
+      "type": "object",
+      "properties": {
+        "mainnet": {
+          "type": "object",
+          "properties": {
+            "jwt": { "type": "string" },
+            "packages": {
+              "type": "object",
+              "properties": {
+                "execution": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "consensus": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "signer": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "mev-boost": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "required": ["execution", "consensus", "signer", "mev-boost"]
+            }
+          },
+          "required": ["jwt", "packages"]
+        },
+        "holesky": {
+          "type": "object",
+          "properties": {
+            "jwt": { "type": "string" },
+            "packages": {
+              "type": "object",
+              "properties": {
+                "execution": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "consensus": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "signer": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "mev-boost": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "required": ["execution", "consensus", "signer", "mev-boost"]
+            }
+          },
+          "required": ["jwt", "packages"]
+        },
+        "gnosis": {
+          "type": "object",
+          "properties": {
+            "jwt": { "type": "string" },
+            "packages": {
+              "type": "object",
+              "properties": {
+                "execution": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "consensus": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "signer": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "mev-boost": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "required": ["execution", "consensus", "signer", "mev-boost"]
+            }
+          },
+          "required": ["jwt", "packages"]
+        },
+        "lukso": {
+          "type": "object",
+          "properties": {
+            "jwt": { "type": "string" },
+            "packages": {
+              "type": "object",
+              "properties": {
+                "execution": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "consensus": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "signer": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "mev-boost": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "required": ["execution", "consensus", "signer", "mev-boost"]
+            }
+          },
+          "required": ["jwt", "packages"]
+        },
+        "sepolia": {
+          "type": "object",
+          "properties": {
+            "jwt": { "type": "string" },
+            "packages": {
+              "type": "object",
+              "properties": {
+                "execution": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "consensus": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "signer": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                },
+                "mev-boost": {
+                  "type": "array",
+                  "items": { "type": "string" }
+                }
+              },
+              "required": ["execution", "consensus", "signer", "mev-boost"]
+            }
+          },
+          "required": ["jwt", "packages"]
+        }
+      },
+      "required": ["mainnet", "holesky", "gnosis", "lukso", "sepolia"]
+    }
+  },
+  "required": ["apis", "networks"]
+}

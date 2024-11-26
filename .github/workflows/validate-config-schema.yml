@@ -1,0 +1,34 @@
+name: Validate JSON Schema
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  validate_json:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Checkout the repository code
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Set up Node.js to install ajv-cli
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18.x"
+
+      # Install ajv-cli globally
+      - name: Install ajv-cli
+        run: npm install -g ajv-cli
+
+      # Validate JSON against schema
+      - name: Validate config.json with schema.json
+        run: |
+          ajv validate -s config/config.schema.json -d config/config.json --strict=true
