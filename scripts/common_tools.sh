@@ -79,19 +79,22 @@ get_jwt_secret_by_network() {
 
     case $network in
     mainnet)
-        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000001"
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000001" # 00000001 = 1
         ;;
     holesky)
-        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000004268"
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000004268" # 00004268 = 17000
         ;;
     gnosis)
-        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000064"
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000000064" # 00000064 = 100
         ;;
     lukso)
-        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e400000002a"
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e400000002a" # 0000002a = 42
         ;;
     sepolia)
-        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000aa36a7"
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000aa36a7" # 0xaa36a7 = 11111111
+        ;;
+    hoodi)
+        jwt="7ad9cfdec75eceb662f5e48f5765701c17f51a5233a60fbcfa5f9e4000088b30" # 0x88b30 = 560048
         ;;
     *)
         echo "[ERROR - entrypoint] NETWORK $network is not supported" >&2
