@@ -229,11 +229,6 @@ _is_mevboost_available() {
         return 0
     else
         echo "[ERROR - entrypoint] MEV Boost is enabled but the package at ${mevboost_url} is not reachable. Disabling MEV Boost..." >&2
-        curl -X POST -G 'http://my.dappnode/notification-send' \
-            --data-urlencode 'type=danger' \
-            --data-urlencode title="${mevboost_url} can not be reached" \
-            --data-urlencode 'body=Make sure the MEV Boost DNP for this network is available and running' \
-            >/dev/null 2>&1
         return 1
     fi
 }
